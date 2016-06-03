@@ -35,10 +35,6 @@
       <div class="trigger">
         
           
-          <a class="page-link" href="/about/">About</a>
-          
-        
-          
         
           
         
@@ -74,11 +70,68 @@ works.</p>
 
 <p>Jekyll also offers powerful support for code snippets:</p>
 
-<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="k">def</span> <span class="nf">print_hi</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
-  <span class="nb">puts</span> <span class="s2">"Hi, </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">"</span>
-<span class="k">end</span>
-<span class="n">print_hi</span><span class="p">(</span><span class="s1">'Tom'</span><span class="p">)</span>
-<span class="c1">#=&gt; prints 'Hi, Tom' to STDOUT.</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">class</span> <span class="nc">RedisConnection</span><span class="p">:</span>
+    <span class="s">"""Redis connection."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">loop</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span> <span class="o">=</span> <span class="n">reader</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_writer</span> <span class="o">=</span> <span class="n">writer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loop</span> <span class="o">=</span> <span class="n">loop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_waiters</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parser</span> <span class="o">=</span> <span class="n">hiredis</span><span class="o">.</span><span class="n">Reader</span><span class="p">(</span><span class="n">protocolError</span><span class="o">=</span><span class="n">ProtocolError</span><span class="p">,</span>
+                                      <span class="n">replyError</span><span class="o">=</span><span class="n">ReplyError</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reader_task</span> <span class="o">=</span> <span class="n">async_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_data</span><span class="p">(),</span> <span class="n">loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closing</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closed</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_close_waiter</span> <span class="o">=</span> <span class="n">create_future</span><span class="p">(</span><span class="n">loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_loop</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reader_task</span><span class="o">.</span><span class="n">add_done_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_close_waiter</span><span class="o">.</span><span class="n">set_result</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_in_transaction</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transaction_error</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># XXX: never used?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_in_pubsub</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pubsub_channels</span> <span class="o">=</span> <span class="n">coerced_keys_dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pubsub_patterns</span> <span class="o">=</span> <span class="n">coerced_keys_dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_encoding</span> <span class="o">=</span> <span class="n">encoding</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">'&lt;RedisConnection [db:{}]&gt;'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="p">)</span>
+
+    <span class="nd">@asyncio.coroutine</span>
+    <span class="k">def</span> <span class="nf">_read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""Response reader task."""</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="o">.</span><span class="n">at_eof</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="k">yield</span> <span class="kn">from</span> <span class="nn">self._reader.read</span><span class="err">(</span><span class="nn">MAX_CHUNK_SIZE</span><span class="err">)
+</span>            <span class="nn">except</span> <span class="nn">asyncio.CancelledError</span><span class="err">:
+</span>                <span class="nn">break</span><span class="err">
+</span>            <span class="nn">except</span> <span class="nn">Exception</span> <span class="nn">as</span> <span class="nn">exc</span><span class="err">:
+</span>                <span class="err">#</span> <span class="nn">XXX</span><span class="err">:</span> <span class="nn">for</span> <span class="nn">QUIT</span> <span class="nn">command</span> <span class="nn">connection</span> <span class="nn">error</span> <span class="nn">can</span> <span class="nn">be</span> <span class="nn">received</span><span class="err">
+</span>                <span class="err">#</span>       <span class="nn">before</span> <span class="nn">response</span><span class="err">
+</span>                <span class="nn">logger.error</span><span class="err">("</span><span class="nn">Exception</span> <span class="nn">on</span> <span class="nn">data</span> <span class="nn">read</span> <span class="err">%</span><span class="nn">r</span><span class="err">",</span> <span class="nn">exc</span><span class="err">,</span> <span class="nn">exc_info</span><span class="err">=</span><span class="nn">True</span><span class="err">)
+</span>                <span class="nn">break</span><span class="err">
+</span>            <span class="nn">self._parser.feed</span><span class="err">(</span><span class="nn">data</span><span class="err">)
+</span>            <span class="nn">while</span> <span class="nn">True</span><span class="err">:
+</span>                <span class="nn">try</span><span class="err">:
+</span>                    <span class="nn">obj</span> <span class="err">=</span> <span class="nn">self._parser.gets</span><span class="err">()
+</span>                <span class="nn">except</span> <span class="nn">ProtocolError</span> <span class="nn">as</span> <span class="nn">exc</span><span class="err">:
+</span>                    <span class="err">#</span> <span class="nn">ProtocolError</span> <span class="nn">is</span> <span class="nn">fatal</span><span class="err">
+</span>                    <span class="err">#</span> <span class="nn">so</span> <span class="nn">connection</span> <span class="nn">must</span> <span class="nn">be</span> <span class="nn">closed</span><span class="err">
+</span>                    <span class="nn">self._closing</span> <span class="err">=</span> <span class="nn">True</span><span class="err">
+</span>                    <span class="nn">self._loop.call_soon</span><span class="err">(</span><span class="nn">self._do_close</span><span class="err">,</span> <span class="nn">exc</span><span class="err">)
+</span>                    <span class="nn">if</span> <span class="nn">self._in_transaction</span> <span class="nn">is</span> <span class="nn">not</span> <span class="nn">None</span><span class="err">:
+</span>                        <span class="nn">self._transaction_error</span> <span class="err">=</span> <span class="nn">exc</span><span class="err">
+</span>                    <span class="nn">return</span><span class="err">
+</span>                <span class="nn">else</span><span class="err">:
+</span>                    <span class="nn">if</span> <span class="nn">obj</span> <span class="nn">is</span> <span class="nn">False</span><span class="err">:
+</span>                        <span class="nn">break</span><span class="err">
+</span>                    <span class="nn">if</span> <span class="nn">self._in_pubsub</span><span class="err">:
+</span>                        <span class="nn">self._process_pubsub</span><span class="err">(</span><span class="nn">obj</span><span class="err">)
+</span>                    <span class="nn">else</span><span class="err">:
+</span>                        <span class="nn">self._process_data</span><span class="err">(</span><span class="nn">obj</span><span class="err">)
+</span>        <span class="nn">self._closing</span> <span class="err">=</span> <span class="nn">True</span><span class="err">
+</span>        <span class="nn">self._loop.call_soon</span><span class="err">(</span><span class="nn">self._do_close</span><span class="err">,</span> <span class="nn">None</span><span class="err">)</span></code></pre></figure>
 
 <p>Check out the <a href="http://jekyllrb.com/docs/home">Jekyll docs</a> for more info on how to get the
 most out of Jekyll. File all bugs/feature requests at <a href="https://github.com/jekyll/jekyll">Jekyll’s GitHub
@@ -93,7 +146,7 @@ Talk</a>.</p>
       </div>
     </div>
 
-    <footer class="site-footer">
+    <!-- <footer class="site-footer">
 
   <div class="wrapper">
 
@@ -130,7 +183,7 @@ Talk</a>.</p>
   </div>
 
 </footer>
-
+ -->
 
   </body>
 
