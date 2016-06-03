@@ -16,12 +16,25 @@ works.
 
 Jekyll also offers powerful support for code snippets:
 
-{% highlight ruby %}
-def print_hi(name)
-  puts "Hi, #{name}"
-end
-print_hi('Tom')
-#=> prints 'Hi, Tom' to STDOUT.
+{% highlight python %}
+import os
+import time
+import tarfile
+
+#List of directories and files to backup
+bk_src = ['/home/pshah/Documents', 
+          '/home/pshah/Templates']
+
+#Directory where the backup will be stored
+bk_dest = '/home/pshah/bk/'
+
+bk_fn = bk_dest + time.strftime('%Y%m%d%H%M%S') + '.tgz'
+zip_cmd = "zip -qr '%s' %s" % (bk_fn, ' '.join(bk_src))
+
+tar_file = tarfile.open(bk_fn, 'w:gz')
+for file in bk_src:
+  tar_file.add(file)
+tar_file.close()
 {% endhighlight %}
 
 Check out the [Jekyll docs][jekyll-docs] for more info on how to get the
