@@ -17,24 +17,68 @@ works.
 Jekyll also offers powerful support for code snippets:
 
 {% highlight python %}
-import os
-import time
-import tarfile
+class RedisConnection:
+    """Redis connection."""
 
-#List of directories and files to backup
-bk_src = ['/home/pshah/Documents', 
-          '/home/pshah/Templates']
+    def __init__(self, reader, writer, *, encoding=None, loop=None):
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        self._reader = reader
+        self._writer = writer
+        self._loop = loop
+        self._waiters = deque()
+        self._parser = hiredis.Reader(protocolError=ProtocolError,
+                                      replyError=ReplyError)
+        self._reader_task = async_task(self._read_data(), loop=self._loop)
+        self._db = 0
+        self._closing = False
+        self._closed = False
+        self._close_waiter = create_future(loop=self._loop)
+        self._reader_task.add_done_callback(self._close_waiter.set_result)
+        self._in_transaction = None
+        self._transaction_error = None  # XXX: never used?
+        self._in_pubsub = 0
+        self._pubsub_channels = coerced_keys_dict()
+        self._pubsub_patterns = coerced_keys_dict()
+        self._encoding = encoding
 
-#Directory where the backup will be stored
-bk_dest = '/home/pshah/bk/'
+    def __repr__(self):
+        return '<RedisConnection [db:{}]>'.format(self._db)
 
-bk_fn = bk_dest + time.strftime('%Y%m%d%H%M%S') + '.tgz'
-zip_cmd = "zip -qr '%s' %s" % (bk_fn, ' '.join(bk_src))
-
-tar_file = tarfile.open(bk_fn, 'w:gz')
-for file in bk_src:
-  tar_file.add(file)
-tar_file.close()
+    @asyncio.coroutine
+    def _read_data(self):
+        """Response reader task."""
+        while not self._reader.at_eof():
+            try:
+                data = yield from self._reader.read(MAX_CHUNK_SIZE)
+            except asyncio.CancelledError:
+                break
+            except Exception as exc:
+                # XXX: for QUIT command connection error can be received
+                #       before response
+                logger.error("Exception on data read %r", exc, exc_info=True)
+                break
+            self._parser.feed(data)
+            while True:
+                try:
+                    obj = self._parser.gets()
+                except ProtocolError as exc:
+                    # ProtocolError is fatal
+                    # so connection must be closed
+                    self._closing = True
+                    self._loop.call_soon(self._do_close, exc)
+                    if self._in_transaction is not None:
+                        self._transaction_error = exc
+                    return
+                else:
+                    if obj is False:
+                        break
+                    if self._in_pubsub:
+                        self._process_pubsub(obj)
+                    else:
+                        self._process_data(obj)
+        self._closing = True
+        self._loop.call_soon(self._do_close, None)
 {% endhighlight %}
 
 Check out the [Jekyll docs][jekyll-docs] for more info on how to get the
