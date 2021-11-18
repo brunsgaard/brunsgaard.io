@@ -36,3 +36,12 @@ Finally hello world in python
 ```python
 print("Hello World")
 ```
+
+## Hello world in Bash
+
+Mosly to test images
+
+![hello world bash](/img/hello-world-bash.jpeg#align-center)
+
+---
+It all seems towork quite nice. I am happy with my first post.
