@@ -44,4 +44,4 @@ Mosly to test images
 ![hello world bash](/img/hello-world-bash.jpeg#align-center)
 
 ---
-It all seems towork quite nice. I am happy with my first post.
+It all seems to work quite nicely. I am happy with my first post.
