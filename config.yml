@@ -1,4 +1,4 @@
-baseurl: "https://example.com/"
+baseurl: "/"
 title: Ghostwriter example
 theme: ghostwriter
 languageCode: en-us
