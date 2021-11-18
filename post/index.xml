@@ -2,4 +2,4 @@
 package main import &amp;#34;fmt&amp;#34; func main() { fmt.Println(&amp;#34;hello world&amp;#34;) } Hello world in Rust And here an example in Rust:
 fn main(){println!(&amp;#34;Hello World!&amp;#34;);}Hello world in Python Finally hello world in python
 print(&amp;#34;Hello World&amp;#34;) Hello world in Bash Mosly to test images
-It all seems towork quite nice. I am happy with my first post.</description></item></channel></rss>
+It all seems to work quite nicely. I am happy with my first post.</description></item></channel></rss>
