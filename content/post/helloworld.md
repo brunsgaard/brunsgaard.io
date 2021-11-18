@@ -1,6 +1,6 @@
 +++
 title = "Hello world"
-description = "Hello world"
+description = "In my favourite languages"
 date = 2021-11-18T00:00:00Z
 author = "Jonas Brunsgaard"
 +++
