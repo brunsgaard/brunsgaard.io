@@ -1,8 +1,8 @@
 baseurl: "http://brunsgaard.io/"
-title: Ghostwriter example
+title: brunsgaard.io
 theme: ghostwriter
 languageCode: en-us
-copyright: My Name
+copyright: Jonas Brunsgaard
 disqusShortname: XXX
 googleAnalytics: XXX
 pygmentsUseClasses: true
@@ -28,7 +28,7 @@ privacy:
     useSessionStorage: false
 
 author:
-  name: My Name
+  name: Jonas Brunsgaard
   profile: ""
 
 taxonomies:
@@ -38,19 +38,16 @@ params:
   mainSections:
     - post
   intro: true
-  headline: Ghostwriter example
-  description: Ghostwriter example description
-  github: "https://github.com/XXX"
-  gitlab: "https://gitlab.com/XXX"
+  headline: Thoughts and Writings
+  description: ""
+  github: "https://github.com/brunsgaard"
   linkedin: "https://linkedin.com/in/XXX/"
-  twitter: "https://twitter.com/XXX"
-  stackoverflow: "https://stackoverflow.com/users/XXX/YYY"
-  facebook: "https://www.facebook.com/username"
-  email: XXX@example.com
+  # twitter: "https://twitter.com/jonasbrunsgaard"
+  # email: jonas.brunsgaard@gmail.com
   opengraph: true
   shareTwitter: true
-  rss: true
-  shareFacebook: true
+  rss: false
+  shareFacebook: false
   shareLinkedIn: false
   dateFormat: "Mon, Jan 2, 2006"
   exponeaJsUrl: ""
@@ -75,12 +72,12 @@ menu:
     - name: Blog
       url: /
       weight: 1
-    - name: Projects
-      url: /project/
-      weight: 2
-    - name: Contact
-      url: /page/contact/
-      weight: 3
-    - name: About
-      url: /page/about/
-      weight: 4
+    # - name: Projects
+    #   url: /project/
+    #   weight: 2
+    # - name: Contact
+    #   url: /page/contact/
+    #   weight: 3
+    # - name: About
+    #   url: /page/about/
+    #   weight: 4
