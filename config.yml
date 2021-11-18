@@ -4,7 +4,7 @@ theme: ghostwriter
 languageCode: en-us
 copyright: Jonas Brunsgaard
 disqusShortname: XXX
-googleAnalytics: XXX
+googleAnalytics: UA-213345006-1
 pygmentsUseClasses: true
 pygmentsCodefences: true
 
