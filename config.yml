@@ -41,7 +41,7 @@ params:
   headline: Thoughts and Writings
   description: ""
   github: "https://github.com/brunsgaard"
-  linkedin: "https://linkedin.com/in/XXX/"
+  linkedin: "https://linkedin.com/in/brunsgaard/"
   # twitter: "https://twitter.com/jonasbrunsgaard"
   # email: jonas.brunsgaard@gmail.com
   opengraph: true
@@ -78,6 +78,6 @@ menu:
     # - name: Contact
     #   url: /page/contact/
     #   weight: 3
-    # - name: About
-    #   url: /page/about/
-    #   weight: 4
+    - name: About
+      url: /page/about/
+      weight: 4
