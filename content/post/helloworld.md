@@ -7,7 +7,7 @@ author = "Jonas Brunsgaard"
 
 ## Hello world in Go
 
-Here's an example of hello world in go:
+Here's an example of hello world in Go:
 
 ```go
 package main
